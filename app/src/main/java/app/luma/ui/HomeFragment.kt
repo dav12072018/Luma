@@ -113,6 +113,7 @@ class HomeFragment : Fragment(), View.OnClickListener, View.OnLongClickListener 
 
     override fun onLongClick(view: View): Boolean {
         if (prefs.homeLocked) return true
+        if (prefs.optionGForSettings) return true
 
         performHapticFeedback(requireContext())
         val n = view.id
