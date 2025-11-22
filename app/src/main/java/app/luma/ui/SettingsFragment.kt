@@ -89,7 +89,7 @@ class SettingsFragment : Fragment() {
     private fun Settings() {
         Column {
             SettingsHeader(
-                title = "Luma Settings (" + requireContext().packageManager.getPackageInfo(requireContext().packageName, 0).versionName + ")",
+                title = "Luma Strict Settings (" + requireContext().packageManager.getPackageInfo(requireContext().packageName, 0).versionName + ")",
                 onBack = { requireActivity().onBackPressedDispatcher.onBackPressed() }
             )
             val isDark = when (prefs.appTheme) {
@@ -98,7 +98,8 @@ class SettingsFragment : Fragment() {
                 System -> isSystemInDarkTheme()
             }
             val themeState = remember { mutableStateOf(!isDark) }
-            
+            val optionGState = remember { mutableStateOf(prefs.optionGForSettings) }
+
             ContentContainer {
                 CustomScrollView(verticalArrangement = Arrangement.spacedBy(40.dp)) {
                     ToggleTextButton(
@@ -111,6 +112,18 @@ class SettingsFragment : Fragment() {
                         onClick = {
                             themeState.value = !themeState.value
                             setTheme(if (themeState.value) Light else Dark)
+                        }
+                    )
+                    ToggleTextButton(
+                        title = getString(R.string.option_g_for_settings),
+                        checked = optionGState.value,
+                        onCheckedChange = {
+                            optionGState.value = it
+                            prefs.optionGForSettings = it
+                        },
+                        onClick = {
+                            optionGState.value = !optionGState.value
+                            prefs.optionGForSettings = optionGState.value
                         }
                     )
                     SimpleTextButton("Pages") { findNavController().navigate(R.id.action_settingsFragment_to_pagesFragment) }
