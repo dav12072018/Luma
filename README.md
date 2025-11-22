@@ -1,4 +1,4 @@
-# Luma - Minimal Launcher
+# Luma Strict - Minimal Launcher
 
 ![Preview](art/preview.png)
 

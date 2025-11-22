@@ -51,6 +51,7 @@
             style="@style/TextSmall"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:id="@+id/settingsHint"
             android:text="@string/long_press_for_settings" />
 
     </LinearLayout>
