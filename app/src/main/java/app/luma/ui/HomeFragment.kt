@@ -6,6 +6,7 @@ import android.content.Context
 import android.os.Build
 import android.os.Bundle
 import android.view.Gravity
+import android.view.KeyEvent
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -55,6 +56,8 @@ class HomeFragment : Fragment(), View.OnClickListener, View.OnLongClickListener 
             binding.firstRunTips.visibility = View.VISIBLE
         }
 
+        updateSettingsHint()
+
         return view
     }
 
@@ -72,6 +75,7 @@ class HomeFragment : Fragment(), View.OnClickListener, View.OnLongClickListener 
 
         initSwipeTouchListener()
         initClickListeners()
+        initKeyboardShortcuts()
     }
 
     override fun onStart() {
@@ -89,6 +93,8 @@ class HomeFragment : Fragment(), View.OnClickListener, View.OnLongClickListener 
         pageIndicatorLayout = null
         updatePageIndicator()
         refreshAppNames()
+        updateSettingsHint()
+        binding.touchArea.requestFocus()
     }
 
     override fun onClick(view: View) {
@@ -117,6 +123,36 @@ class HomeFragment : Fragment(), View.OnClickListener, View.OnLongClickListener 
     private fun initSwipeTouchListener() {
         val context = requireContext()
         binding.touchArea.setOnTouchListener(getHomeScreenGestureListener(context))
+    }
+
+    private fun initKeyboardShortcuts() {
+        binding.touchArea.apply {
+            isFocusableInTouchMode = true
+            requestFocus()
+            setOnFocusChangeListener { v, hasFocus ->
+                if (!hasFocus) v.requestFocus()
+            }
+            setOnKeyListener { _, keyCode, event ->
+                if (prefs.optionGForSettings &&
+                    event.action == KeyEvent.ACTION_DOWN &&
+                    event.repeatCount == 0 &&
+                    keyCode == KeyEvent.KEYCODE_G &&
+                    event.isCtrlPressed
+                ) {
+                    openSettings()
+                    true
+                } else {
+                    false
+                }
+            }
+        }
+    }
+
+    private fun openSettings() {
+        try {
+            findNavController().navigate(R.id.action_mainFragment_to_settingsFragment)
+        } catch (e: Exception) {
+        }
     }
 
     private fun initPageNavigation() {
@@ -326,7 +362,7 @@ class HomeFragment : Fragment(), View.OnClickListener, View.OnLongClickListener 
                 } catch (e: SecurityException) {
                     showToastLong(requireContext(), "App does not have the permission to lock the device")
                 } catch (e: Exception) {
-                    showToastLong(requireContext(), "Luma failed to lock device.\nPlease check your app settings.")
+                    showToastLong(requireContext(), "Luma Strict failed to lock device.\nPlease check your app settings.")
                     prefs.lockModeOn = false
                 }
             }
@@ -335,12 +371,28 @@ class HomeFragment : Fragment(), View.OnClickListener, View.OnLongClickListener 
 
     private fun showLongPressToast() = showToastShort(requireContext(), "Long press to select app")
 
+    private fun updateSettingsHint() {
+        val hintText = if (prefs.optionGForSettings) {
+            getString(R.string.option_g_for_settings)
+        } else {
+            getString(R.string.long_press_for_settings)
+        }
+        binding.settingsHint.text = hintText
+    }
+
     private fun textOnClick(view: View) = onClick(view)
 
     private fun textOnLongClick(view: View) = onLongClick(view)
 
     private fun getHomeScreenGestureListener(context: Context): View.OnTouchListener {
         return object : OnSwipeTouchListener(context) {
+            override fun onLongClick() {
+                if (prefs.optionGForSettings) return
+
+                performHapticFeedback(requireContext())
+                openSettings()
+            }
+
             override fun onSwipeLeft() {
                 super.onSwipeLeft()
                 when(val action = prefs.swipeLeftAction) {
@@ -384,15 +436,6 @@ class HomeFragment : Fragment(), View.OnClickListener, View.OnLongClickListener 
                 when(val action = prefs.swipeDownAction) {
                     Action.OpenApp -> openSwipeDownApp()
                     else -> handleOtherAction(action)
-                }
-            }
-
-            override fun onLongClick() {
-                super.onLongClick()
-                try {
-                    findNavController().navigate(R.id.action_mainFragment_to_settingsFragment)
-                    // viewModel.firstOpen(false)
-                } catch (e: java.lang.Exception) {
                 }
             }
 

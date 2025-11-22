@@ -4,7 +4,7 @@ import android.content.Context
 import android.provider.Settings
 
 /**
- * Mirror the Android Display > Font size slider so Luma tracks the same relative sizes.
+ * Mirror the Android Display > Font size slider so Luma Strict tracks the same relative sizes.
  */
 object SystemFontScale {
     private const val SMALL_THRESHOLD = 0.9f
